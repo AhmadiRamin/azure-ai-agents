@@ -1,17 +1,26 @@
-# Azure OpenAI Agent with Bing Grounding Migration
+# Bing Grounding Search + Custom Search
 
-Complete migration guide and sample code for transitioning from Bing Search APIs to Azure OpenAI Agent with Grounding Bing Search using Semantic Kernel.
+A comprehensive demonstration of migrating from Bing Search APIs to Azure OpenAI Agents with Grounding capabilities using .NET.
 
-## 🚨 Important Notice
 
-**Bing Search APIs are expiring on August 11, 2025.** This repository provides a complete migration path to Azure OpenAI Agent with Grounding Bing Search capabilities.
+## Overview
+
+With Bing Search APIs retiring on August 11, 2025, this repository provides a complete migration path to Azure OpenAI Agents with "Grounding with Bing Search" capabilities. The solution demonstrates both basic web search grounding and advanced custom search implementations for building specialized AI agents.
+
+## Features
+* Basic Bing Search Grounding: Full implementation of Azure OpenAI Agents with web search capabilities
+* Custom Search Integration: Advanced configuration for domain-specific AI agents
+* Flexible Architecture: Maintainable, configuration-driven design supporting multiple agent types
+* Real-time Information Access: Agents that combine trained knowledge with current web data
+* Enterprise-Ready: Production-grade error handling, logging, and configuration management
 
 ## 📖 Blog Post
 
-For a detailed step-by-step guide, read the complete blog post:
+For a detailed step-by-step guide, read the complete blog posts:
 
 **[Migrating from Bing Search APIs to Azure OpenAI Agent with Grounding Bing Search](https://codingwithramin.com/?p=493)**
 
+**[Beyond Basic Web Search: Building a Specialized AI Agent with Bing Custom Search](https://codingwithramin.com/?p=504)**
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -30,9 +39,10 @@ For a detailed step-by-step guide, read the complete blog post:
    ```
 
 2. **Create Azure Resources**
-   - Set up Azure AI Foundry hub and project
-   - Create a Grounding with Bing Search resource
-   - Deploy Azure OpenAI model (GPT-4o recommended)
+   - Set up Azure AI Foundry and project
+   - Create "Grounding with Bing Search" resource for basic search
+   - Create "Grounding with Bing Custom Search" resource for specialized search
+   - Connect both resources to your AI Foundry project
 
 3. **Configure the application**
    ```bash
@@ -46,83 +56,10 @@ For a detailed step-by-step guide, read the complete blog post:
    dotnet run
    ```
 
-## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────────┐
-│   Your App     │───▶│ Semantic Kernel  │───▶│   Azure AI Agent    │
-└─────────────────┘    └──────────────────┘    └─────────────────────┘
-                                                          │
-                                                          ▼
-                                                ┌─────────────────────┐
-                                                │ Grounding with Bing │
-                                                │    Search Tool      │
-                                                └─────────────────────┘
-```
-
-## 🔧 Configuration
-
-### Required Settings
-
-Update your `appsettings.json` with the following:
-
-```json
-{
-  "AzureAI": {
-    "ConnectionString": "your-azure-ai-project-connection-string"
-  },
-  "AzureOpenAI": {
-    "Endpoint": "https://your-resource-name.openai.azure.com",
-    "ApiKey": "your-api-key",
-    "DeploymentName": "gpt-4o"
-  },
-  "BingGrounding": {
-    "ConnectionName": "your-bing-connection-name"
-  }
-}
-```
-
-## 🔍 Usage Examples
-
-### Basic Query
-```csharp
-var response = await agent.ProcessQueryAsync("What are the latest developments in AI technology?");
-```
-
-### Current Events
-```csharp
-var response = await agent.ProcessQueryAsync("What is the current weather in Seattle?");
-```
-
-### Technical Information
-```csharp
-var response = await agent.ProcessQueryAsync("What are the newest features in .NET 8?");
-```
-
-## 🆚 Migration Comparison
-
-| Feature | Bing Search APIs | Azure AI Agent with Bing Grounding |
-|---------|------------------|-------------------------------------|
-| **Integration** | Manual HTTP calls | Automatic via Semantic Kernel |
-| **Response Format** | Raw JSON | Conversational responses |
-| **Citations** | Manual implementation | Automatic with source links |
-| **Rate Limiting** | Separate API limits | Azure OpenAI quotas |
-| **Cost Management** | Separate billing | Consolidated Azure billing |
-| **Complexity** | High (manual processing) | Low (automatic processing) |
-
-## 📚 Documentation
-
-- [Azure AI Foundry Documentation](https://docs.microsoft.com/azure/ai-foundry)
-- [Semantic Kernel Documentation](https://docs.microsoft.com/semantic-kernel)
-- [Azure OpenAI Agent Documentation](https://docs.microsoft.com/azure/cognitive-services/openai/agents)
-- [Grounding with Bing Search Guide](https://learn.microsoft.com/azure/ai-foundry/agents/how-to/tools/bing-grounding)
-
 ## 🛠️ NuGet Packages
 
 The project uses the following key packages:
 
-- `Microsoft.SemanticKernel` (1.60.0)
-- `Microsoft.SemanticKernel.Agents.OpenAI` (1.60.0-preview)
 - `Azure.AI.Projects` (v1.0.0-beta.9)
 - `Azure.AI.Agents.Persistent` (1.1.0-beta.3)
 
@@ -142,11 +79,9 @@ Contributions are welcome! Please feel free to submit issues, feature requests, 
 - [Original Blog Post](https://codingwithramin.com/?p=493) - Complete migration guide
 - [Bing Search APIs Deprecation Notice](https://docs.microsoft.com/bing/search-apis/migration)
 - [Azure OpenAI Service](https://azure.microsoft.com/products/ai-services/openai-service)
-- [Semantic Kernel GitHub](https://github.com/microsoft/semantic-kernel)
-
 ---
 
 ⭐ If this repository helped you with your migration, please give it a star!
 
-📝 **Last updated:** 11/07/2025
+📝 **Last updated:** 16/07/2025
 🏷️ **Version:** 1.0.0
