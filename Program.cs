@@ -1,4 +1,5 @@
 ﻿using Azure.AI.Agents.Persistent;
+using BingGroundingAgent;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -13,22 +14,69 @@ var configuration = new ConfigurationBuilder()
     .Build();
 
 builder.Services.AddSingleton<IConfiguration>(configuration);
+builder.Services.AddSingleton<AgentService>();
+
+// Register agents from configuration
+var agentsConfig = new AgentsConfiguration();
+configuration.GetSection("Agents").Bind(agentsConfig.Agents);
+
+// Register each agent as a named service
+foreach (var agentConfig in agentsConfig.Agents)
+{
+    var agentType = agentConfig.Name; // Fallback to name if type is not set
+    builder.Services.AddKeyedSingleton<AzureAgent>(
+        agentType,
+        (provider, key) =>
+            new AzureAgent(
+                provider.GetRequiredService<ILogger<AzureAgent>>(),
+                provider.GetRequiredService<AgentService>(),
+                agentConfig
+            )
+    );
+}
+
 builder.Services.AddLogging(logging =>
 {
     logging.AddConsole();
     logging.SetMinimumLevel(LogLevel.Information);
 });
 
-builder.Services.AddSingleton<BingGroundingAgent.BingGroundingAgent>();
-
 var host = builder.Build();
 var logger = host.Services.GetRequiredService<ILogger<Program>>();
-var agent = host.Services.GetRequiredService<BingGroundingAgent.BingGroundingAgent>();
+
+// Get available agents from configuration
+var availableAgents = new AgentsConfiguration();
+configuration.GetSection("Agents").Bind(availableAgents.Agents);
+
+// Let user select which agent to use
+Console.WriteLine("Available agents:");
+for (int i = 0; i < availableAgents.Agents.Count; i++)
+{
+    var agent = availableAgents.Agents[i];
+    Console.WriteLine($"{i + 1}. {agent.Name}");
+}
+
+Console.Write("Select an agent (1-{0}): ", availableAgents.Agents.Count);
+var selection = Console.ReadLine();
+
+if (
+    !int.TryParse(selection, out int agentIndex)
+    || agentIndex < 1
+    || agentIndex > availableAgents.Agents.Count
+)
+{
+    logger.LogError("Invalid agent selection");
+    return;
+}
+
+var selectedAgentConfig = availableAgents.Agents[agentIndex - 1];
+var agentKey = selectedAgentConfig.Name;
+var selectedAgent = host.Services.GetRequiredKeyedService<AzureAgent>(agentKey);
 
 try
 {
-    logger.LogInformation("Initializing Bing Grounding Agent...");
-    await agent.InitializeAsync();
+    logger.LogInformation("Initializing {AgentName}...", selectedAgentConfig.Name);
+    await selectedAgent.InitializeAsync();
 
     while (true)
     {
@@ -40,14 +88,31 @@ try
         logger.LogInformation("Processing query: {Query}", input);
 
         Console.Write("Assistant: ");
-        await foreach (var update in await agent.ProcessQueryAsync(input))
+        await foreach (var update in await selectedAgent.ProcessQueryAsync(input))
         {
-            if (update.UpdateKind == StreamingUpdateReason.MessageUpdated)
+            try
             {
-                MessageContentUpdate messageContent = (MessageContentUpdate)update;
-                Console.Write(messageContent.Text);
+                if (update.UpdateKind == StreamingUpdateReason.MessageUpdated)
+                {
+                    if (update is MessageContentUpdate messageContent)
+                    {
+                        // Filter out citation markers and special characters
+                        var text = messageContent.Text;
+                        if (!string.IsNullOrEmpty(text))
+                        {
+                            Console.Write(text);
+                        }
+                    }
+                }
+            }
+            catch (Exception updateEx)
+            {
+                logger.LogWarning(updateEx, "Error processing streaming update");
             }
         }
+
+        // Output references (citations)
+        await selectedAgent.GetCitationSourcesAsync();
     }
 }
 catch (Exception ex)
