@@ -1,5 +1,5 @@
 ﻿
-namespace BingGroundingAgent
+namespace AzureAIAgents
 {
     public interface IAgentOptions
     {

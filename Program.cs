@@ -1,9 +1,10 @@
 ﻿using Azure.AI.Agents.Persistent;
-using BingGroundingAgent;
+using AzureAIAgents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 var builder = Host.CreateApplicationBuilder(args);
 
@@ -19,6 +20,36 @@ builder.Services.AddSingleton<AgentService>();
 // Register agents from configuration
 var agentsConfig = new AgentsConfiguration();
 configuration.GetSection("Agents").Bind(agentsConfig.Agents);
+
+if (agentsConfig.Agents.Count == 0)
+{
+	Console.WriteLine("No agents configured. Please check your appsettings.json file.");
+	return;
+}
+
+// Validate agent configurations
+var validAgents = new List<AgentOptions>();
+foreach (var agentConfig in agentsConfig.Agents)
+{
+	var validationResults = new List<ValidationResult>();
+	var validationContext = new ValidationContext(agentConfig);
+
+	if (Validator.TryValidateObject(agentConfig, validationContext, validationResults, true))
+	{
+		validAgents.Add(agentConfig);
+	}
+	else
+	{
+		var errors = string.Join(", ", validationResults.Select(vr => vr.ErrorMessage));
+		Console.WriteLine($"Invalid configuration for agent '{agentConfig.Name}': {errors}");
+	}
+}
+
+if (validAgents.Count == 0)
+{
+	Console.WriteLine("No valid agents found. Please check your configuration.");
+	return;
+}
 
 // Register each agent as a named service
 foreach (var agentConfig in agentsConfig.Agents)
@@ -112,7 +143,7 @@ try
         }
 
         // Output references (citations)
-        await selectedAgent.GetCitationSourcesAsync();
+        await selectedAgent.DisplayCitationsAsync();
     }
 }
 catch (Exception ex)

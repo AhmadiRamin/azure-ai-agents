@@ -2,7 +2,7 @@ using System.ClientModel;
 using Azure.AI.Agents.Persistent;
 using Microsoft.Extensions.Logging;
 
-namespace BingGroundingAgent;
+namespace AzureAIAgents;
 
 public sealed class AzureAgent
 {
@@ -60,7 +60,7 @@ public sealed class AzureAgent
             await _agentService.CreateMessageAsync(thread.Id, userQuery);
 
             // Get response from agent
-            return _agentService.CreateStreaming(thread.Id, _agent.Id);
+            return _agentService.CreateStreamingAsync(thread.Id, _agent.Id);
         }
         catch (Exception ex)
         {
@@ -69,32 +69,70 @@ public sealed class AzureAgent
         }
     }
 
-    public async Task GetCitationSourcesAsync()
-    {
-        if (_agent == null)
-        {
-            throw new InvalidOperationException(
-                "Agent is not initialized. Call InitializeAsync first."
-            );
-        }
+	public async Task DisplayCitationsAsync()
+	{
+		if (_thread == null)
+		{
+			_logger.LogWarning("No active thread to get citations from");
+			return;
+		}
 
-        if (_thread == null)
-        {
-            throw new InvalidOperationException("No active thread. Process a query first.");
-        }
+		try
+		{
+			var citations = await _agentService.GetCitationsAsync(_thread.Id);
 
-        var citations = await _agentService.GetMessageUrlCitationsAsync(_agent.Id, _thread.Id);
+			if (citations.Count > 0)
+			{
+				Console.WriteLine();
+				Console.WriteLine("Sources:");
+				Console.WriteLine(new string('-', 50));
 
-        if (citations.Count > 0)
-        {
-            Console.WriteLine();
-			Console.WriteLine("---------------------------------");
-			Console.WriteLine("References:");
+				for (int i = 0; i < citations.Count; i++)
+				{
+					var citation = citations[i];
+					Console.WriteLine($"{i + 1}. {citation.UriCitation.Uri}");
+				}
+				Console.WriteLine();
+			}
+			else
+			{
+				_logger.LogDebug("No citations found for current thread");
+			}
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to display citations for agent '{AgentName}'", _agentOptions.Name);
+		}
+	}
 
-            foreach (var citation in citations)
-            {
-                Console.WriteLine($"* {citation.UriCitation.Uri}");
-            }
-        }
-    }
+	public async Task<bool> ValidateConnectionsAsync()
+	{
+		try
+		{
+			if (_agentOptions.Tools == null || _agentOptions.Tools.Count == 0)
+			{
+				_logger.LogInformation("Agent '{AgentName}' has no tools to validate", _agentOptions.Name);
+				return true;
+			}
+
+			var allValid = true;
+			foreach (var tool in _agentOptions.Tools)
+			{
+				var isValid = await _agentService.ValidateConnectionAsync(tool.ConnectionName);
+				if (!isValid)
+				{
+					_logger.LogWarning("Invalid connection '{ConnectionName}' for tool '{ToolType}' in agent '{AgentName}'",
+						tool.ConnectionName, tool.ToolType, _agentOptions.Name);
+					allValid = false;
+				}
+			}
+
+			return allValid;
+		}
+		catch (Exception ex)
+		{
+			_logger.LogError(ex, "Failed to validate connections for agent '{AgentName}'", _agentOptions.Name);
+			return false;
+		}
+	}
 }

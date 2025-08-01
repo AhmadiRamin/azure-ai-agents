@@ -1,26 +1,27 @@
-# Bing Grounding Search + Custom Search
+# Azure AI Agents
 
-A comprehensive demonstration of migrating from Bing Search APIs to Azure OpenAI Agents with Grounding capabilities using .NET.
-
-
-## Overview
-
-With Bing Search APIs retiring on August 11, 2025, this repository provides a complete migration path to Azure OpenAI Agents with "Grounding with Bing Search" capabilities. The solution demonstrates both basic web search grounding and advanced custom search implementations for building specialized AI agents.
+A comprehensive demonstration of Azure OpenAI Agents using .NET.
 
 ## Features
 * Basic Bing Search Grounding: Full implementation of Azure OpenAI Agents with web search capabilities
 * Custom Search Integration: Advanced configuration for domain-specific AI agents
+* SharePoint Grounding: Pull SharePoint contents
 * Flexible Architecture: Maintainable, configuration-driven design supporting multiple agent types
 * Real-time Information Access: Agents that combine trained knowledge with current web data
 * Enterprise-Ready: Production-grade error handling, logging, and configuration management
 
-## 📖 Blog Post
+## 📖 Blog Posts
 
 For a detailed step-by-step guide, read the complete blog posts:
 
 **[Migrating from Bing Search APIs to Azure OpenAI Agent with Grounding Bing Search](https://codingwithramin.com/?p=493)**
 
 **[Beyond Basic Web Search: Building a Specialized AI Agent with Bing Custom Search](https://codingwithramin.com/?p=504)**
+
+**[Beyond Manual Indexing: Building Intelligent SharePoint Agents – Part 1: The Foundation](https://codingwithramin.com/?p=518)**
+
+**[Beyond Manual Indexing: Building Intelligent SharePoint Agents – Part 2: Implementation](https://codingwithramin.com/?p=532)**
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -43,10 +44,11 @@ For a detailed step-by-step guide, read the complete blog posts:
    - Create "Grounding with Bing Search" resource for basic search
    - Create "Grounding with Bing Custom Search" resource for specialized search
    - Connect both resources to your AI Foundry project
-
+   - Create a "SharePoint Grouding" connection
+   
 3. **Configure the application**
    ```bash
-   cd BingGroundingAgent
+   cd AzureAIAgents
    cp appsettings.json.template appsettings.json
    # Edit appsettings.json with your Azure credentials
    ```
