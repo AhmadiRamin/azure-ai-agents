@@ -30,17 +30,27 @@ namespace AzureAIAgents
 				var connectionString = _configuration["AzureAI:ConnectionString"]
 					?? throw new InvalidOperationException("Azure AI connection string is not configured");
 
+				var credential = new DefaultAzureCredential(
+					new DefaultAzureCredentialOptions
+					{
+						ExcludeEnvironmentCredential = true,
+						ExcludeWorkloadIdentityCredential = true,
+						ExcludeInteractiveBrowserCredential = false,
+						ExcludeManagedIdentityCredential = true,
+						ExcludeVisualStudioCredential = false,
+					}
+				);
 				// Create Azure AI Project client with proper authentication
 				_projectClient = new AIProjectClient(
 					new Uri(connectionString),
-					new DefaultAzureCredential()
+					credential
 				);
 				_connections = _projectClient.GetConnectionsClient();
 
 				// Create Azure AI persistent client
 				_persistentClient = new PersistentAgentsClient(
 					connectionString,
-					new DefaultAzureCredential()
+					credential
 				);
 
 				_logger.LogInformation("Successfully initialized Azure AI clients");
