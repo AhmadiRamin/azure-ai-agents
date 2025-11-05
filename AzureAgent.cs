@@ -23,7 +23,6 @@ public sealed class AzureAgent
     {
         try
         {
-            // Define the agent using the provided agent options
             _agent = await _agentService.CreateAgentAsync(_agentOptions);
             _logger.LogInformation(
                 "{AgentName} initialized successfully. Agent ID: {AgentId}",
@@ -52,14 +51,11 @@ public sealed class AzureAgent
         {
             _logger.LogInformation("Processing query: {Query}", userQuery);
 
-            // Create a new thread for the conversation
             var thread = await _agentService.CreateThreadAsync();
             _thread = thread;
 
-            // Add user message
             await _agentService.CreateMessageAsync(thread.Id, userQuery);
 
-            // Get response from agent
             return _agentService.CreateStreamingAsync(thread.Id, _agent.Id);
         }
         catch (Exception ex)

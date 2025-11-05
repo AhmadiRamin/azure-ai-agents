@@ -40,14 +40,12 @@ namespace AzureAIAgents
 						ExcludeVisualStudioCredential = false,
 					}
 				);
-				// Create Azure AI Project client with proper authentication
 				_projectClient = new AIProjectClient(
 					new Uri(connectionString),
 					credential
 				);
 				_connections = _projectClient.GetConnectionsClient();
 
-				// Create Azure AI persistent client
 				_persistentClient = new PersistentAgentsClient(
 					connectionString,
 					credential
@@ -121,7 +119,6 @@ namespace AzureAIAgents
 			{
 				ArgumentNullException.ThrowIfNull(agentOptions, nameof(agentOptions));
 
-				// Validate configuration
 				var validationResults = new List<ValidationResult>();
 				var validationContext = new ValidationContext(agentOptions);
 				if (!Validator.TryValidateObject(agentOptions, validationContext, validationResults, true))
@@ -130,7 +127,6 @@ namespace AzureAIAgents
 					throw new ArgumentException($"Invalid agent configuration: {errors}");
 				}
 
-				// Check if agent already exists
 				var existingAgent = await GetAgentAsync(agentOptions.Name);
 				if (existingAgent != null)
 				{
@@ -139,7 +135,6 @@ namespace AzureAIAgents
 					return existingAgent;
 				}
 
-				// Create tools
 				var toolDefinitions = new List<ToolDefinition>();
 
 				if (agentOptions.Tools != null)
@@ -154,7 +149,6 @@ namespace AzureAIAgents
 					}
 				}
 
-				// Create agent
 				var agent = await _persistentClient.Administration.CreateAgentAsync(
 					model: agentOptions.Deployment,
 					name: agentOptions.Name,
@@ -318,7 +312,7 @@ namespace AzureAIAgents
 
 				if (messagesList.Count > 0)
 				{
-					var lastMessage = messagesList[0]; // Messages are returned in reverse chronological order
+					var lastMessage = messagesList[0];
 					foreach (var contentItem in lastMessage.ContentItems)
 					{
 						if (contentItem is MessageTextContent textItem)
