@@ -17,15 +17,12 @@ var configuration = new ConfigurationBuilder()
 
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
-// Register authentication services
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<IUserAuthenticationService, DeviceCodeAuthenticationService>();
 
-// Register both agent services
 builder.Services.AddSingleton<AgentService>();
 builder.Services.AddSingleton<DelegatedAgentService>();
 
-// Register agents from configuration
 var agentsConfig = new AgentsConfiguration();
 configuration.GetSection("Agents").Bind(agentsConfig.Agents);
 
@@ -35,10 +32,8 @@ if (agentsConfig.Agents.Count == 0)
 	return;
 }
 
-// Register agents with both application and delegated versions
 foreach (var agentConfig in agentsConfig.Agents)
 {
-	// Regular agent with application permissions
 	builder.Services.AddKeyedSingleton<AzureAgent>(
 		$"{agentConfig.Name}:Application",
 		(provider, key) => new AzureAgent(
@@ -48,7 +43,6 @@ foreach (var agentConfig in agentsConfig.Agents)
 		)
 	);
 
-	// Delegated agent with user permissions
 	builder.Services.AddKeyedSingleton<DelegatedAzureAgent>(
 		$"{agentConfig.Name}:Delegated",
 		(provider, key) => new DelegatedAzureAgent(
@@ -73,7 +67,6 @@ try
 	Console.WriteLine("🚀 Azure AI Agent with Permission Options");
 	Console.WriteLine("=========================================");
 
-	// Let user choose permission type
 	Console.WriteLine("\nSelect permission type:");
 	Console.WriteLine("1. Application Permissions (Service Account - your current setup)");
 	Console.WriteLine("2. Delegated Permissions (User Authentication)");
@@ -93,11 +86,9 @@ try
 		Console.WriteLine("Using service account authentication...");
 	}
 
-	// Get available agents from configuration
 	var availableAgents = new AgentsConfiguration();
 	configuration.GetSection("Agents").Bind(availableAgents.Agents);
 
-	// Let user select which agent to use
 	Console.WriteLine($"\nAvailable agents:");
 	for (int i = 0; i < availableAgents.Agents.Count; i++)
 	{
@@ -119,7 +110,6 @@ try
 
 	if (useDelegatedPermissions)
 	{
-		// Use delegated permissions
 		var agentKey = $"{selectedAgentConfig.Name}:Delegated";
 		var selectedAgent = host.Services.GetRequiredKeyedService<DelegatedAzureAgent>(agentKey);
 
@@ -130,7 +120,6 @@ try
 	}
 	else
 	{
-		// Use application permissions (your existing setup)
 		var agentKey = $"{selectedAgentConfig.Name}:Application";
 		var selectedAgent = host.Services.GetRequiredKeyedService<AzureAgent>(agentKey);
 
@@ -149,7 +138,6 @@ catch (Exception ex)
 logger.LogInformation("Application completed");
 await host.StopAsync();
 
-// Helper method for chat loop (works with both agent types)
 static async Task RunChatLoop<T>(T agent, ILogger logger) where T : class
 {
 	Console.WriteLine("\n💬 Chat with your agent (type 'exit' to quit):");
@@ -177,7 +165,6 @@ static async Task RunChatLoop<T>(T agent, ILogger logger) where T : class
 
 		Console.Write("Assistant: ");
 
-		// Handle both AzureAgent and DelegatedAzureAgent
 		AsyncCollectionResult<StreamingUpdate> updates;
 		if (agent is DelegatedAzureAgent delegatedAgent)
 		{
@@ -219,7 +206,6 @@ static async Task RunChatLoop<T>(T agent, ILogger logger) where T : class
 			}
 		}
 
-		// Display citations for both agent types
 		if (agent is DelegatedAzureAgent delegatedAgentForCitations)
 		{
 			await delegatedAgentForCitations.DisplayCitationsAsync();

@@ -35,24 +35,20 @@ public class DelegatedAgentService
 			var connectionString = _configuration["AzureAI:ConnectionString"]
 				?? throw new InvalidOperationException("Azure AI connection string is not configured");
 
-			// Ensure user is authenticated
 			if (!await _authService.IsUserAuthenticatedAsync())
 			{
 				await _authService.SignInAsync();
 			}
 
-			// Get user's access token and exchange for Azure AI token
 			var userToken = await _authService.GetUserAccessTokenAsync();
 			var credential = new StaticTokenCredential(userToken);
 
-			// Create Azure AI Project client with delegated credentials
 			_projectClient = new AIProjectClient(
 				new Uri(connectionString),
 				credential
 			);
 			_connections = _projectClient.GetConnectionsClient();
 
-			// Create Azure AI persistent client with delegated credentials
 			_persistentClient = new PersistentAgentsClient(
 				connectionString,
 				credential
@@ -67,7 +63,6 @@ public class DelegatedAgentService
 		}
 	}
 
-	// Implement the same methods as AgentService but with delegated credentials
 	public async Task<PersistentAgent?> GetAgentAsync(string name)
 	{
 		try
@@ -127,7 +122,6 @@ public class DelegatedAgentService
 		{
 			ArgumentNullException.ThrowIfNull(agentOptions, nameof(agentOptions));
 
-			// Check if agent already exists
 			var existingAgent = await GetAgentAsync(agentOptions.Name);
 			if (existingAgent != null)
 			{
@@ -136,7 +130,6 @@ public class DelegatedAgentService
 				return existingAgent;
 			}
 
-			// Create tools
 			var toolDefinitions = new List<ToolDefinition>();
 
 			if (agentOptions.Tools != null)
@@ -151,7 +144,6 @@ public class DelegatedAgentService
 				}
 			}
 
-			// Create agent with delegated permissions
 			var agent = await _persistentClient.Administration.CreateAgentAsync(
 				model: agentOptions.Deployment,
 				name: agentOptions.Name,
@@ -315,7 +307,7 @@ public class DelegatedAgentService
 
 			if (messagesList.Count > 0)
 			{
-				var lastMessage = messagesList[0]; // Messages are returned in reverse chronological order
+				var lastMessage = messagesList[0];
 				foreach (var contentItem in lastMessage.ContentItems)
 				{
 					if (contentItem is MessageTextContent textItem)
@@ -366,7 +358,6 @@ public class DelegatedAgentService
 	}
 }
 
-// Helper class for static token credential  
 public class StaticTokenCredential : TokenCredential
 {
 	private readonly string _token;

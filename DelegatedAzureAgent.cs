@@ -23,13 +23,11 @@ public sealed class DelegatedAzureAgent
 	{
 		try
 		{
-			// Initialize the delegated agent service first
 			await _agentService.InitializeAsync();
 
 			var currentUser = await _agentService.GetCurrentUserAsync();
 			Console.WriteLine($"🔐 Initializing agent with delegated permissions for: {currentUser}");
 
-			// Define the agent using delegated credentials
 			_agent = await _agentService.CreateAgentAsync(_agentOptions);
 
 			Console.WriteLine($"✅ Agent '{_agentOptions.Name}' ready with user-level permissions");
@@ -65,14 +63,11 @@ public sealed class DelegatedAzureAgent
 
 			_logger.LogInformation("Processing query: {Query}", userQuery);
 
-			// Create a new thread for the conversation
 			var thread = await _agentService.CreateThreadAsync();
 			_thread = thread;
 
-			// Add user message
 			await _agentService.CreateMessageAsync(thread.Id, userQuery);
 
-			// Get response from agent with delegated permissions
 			return _agentService.CreateStreamingAsync(thread.Id, _agent.Id);
 		}
 		catch (Exception ex)
@@ -149,6 +144,5 @@ public sealed class DelegatedAzureAgent
 		}
 	}
 
-	// Expose agent options for easier access
 	public AgentOptions AgentOptions => _agentOptions;
 }

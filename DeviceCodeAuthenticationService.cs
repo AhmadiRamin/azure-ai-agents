@@ -24,7 +24,7 @@ public class DeviceCodeAuthenticationService : IUserAuthenticationService
 	private readonly ILogger<DeviceCodeAuthenticationService> _logger;
 	private readonly string[] _scopes =
 	{
-		"https://ai.azure.com/user_impersonation" // For Azure AI Foundry OBO
+		"https://ai.azure.com/user_impersonation"
     };
 
 	public DeviceCodeAuthenticationService(IConfiguration configuration, ILogger<DeviceCodeAuthenticationService> logger)
@@ -37,7 +37,7 @@ public class DeviceCodeAuthenticationService : IUserAuthenticationService
 		_clientApp = PublicClientApplicationBuilder
 			.Create(clientId)
 			.WithAuthority($"https://login.microsoftonline.com/{tenantId}")
-			.WithDefaultRedirectUri() // Uses http://localhost for device code flow
+			.WithDefaultRedirectUri()
 			.Build();
 	}
 
@@ -52,7 +52,6 @@ public class DeviceCodeAuthenticationService : IUserAuthenticationService
 
 			if (firstAccount != null)
 			{
-				// Try to get token silently (from cache)
 				try
 				{
 					result = await _clientApp.AcquireTokenSilent(_scopes, firstAccount)
@@ -62,12 +61,10 @@ public class DeviceCodeAuthenticationService : IUserAuthenticationService
 				}
 				catch (MsalUiRequiredException)
 				{
-					// Silent acquisition failed, fall through to device code flow
 					_logger.LogInformation("Silent token acquisition failed, using device code flow");
 				}
 			}
 
-			// Use device code flow - perfect for console apps!
 			result = await _clientApp.AcquireTokenWithDeviceCode(_scopes, deviceCodeResult =>
 			{
 				Console.WriteLine();
@@ -102,7 +99,7 @@ public class DeviceCodeAuthenticationService : IUserAuthenticationService
 
 	public async Task SignInAsync()
 	{
-		await GetUserAccessTokenAsync(); // Device code flow handles sign-in
+		await GetUserAccessTokenAsync();
 	}
 
 	public async Task SignOutAsync()
